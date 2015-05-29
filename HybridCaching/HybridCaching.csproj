@@ -39,6 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interfaces\ICache.cs" />
+    <Compile Include="Interfaces\IHybridCache.cs" />
+    <Compile Include="Interfaces\IRawCache.cs" />
+    <Compile Include="Interfaces\ISubscribable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
