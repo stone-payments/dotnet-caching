@@ -54,6 +54,7 @@
     <Compile Include="HybridCacheTests.cs" />
     <Compile Include="IFakeValueCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RawCacheTests.cs" />
     <Compile Include="ResourceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
