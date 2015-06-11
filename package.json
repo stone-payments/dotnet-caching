@@ -1,6 +1,6 @@
 {
   "name": "dotnet-caching",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/vtex/dotnet-caching"
@@ -8,7 +8,7 @@
   "devDependencies": {
     "coffee-script": "^1.9.2",
     "gulp": "3.8.11",
-    "gulp-dotnet-utils": "^0.1.3",
+    "gulp-dotnet-utils": "^0.1.4",
     "yargs": "^3.9.1"
   }
 }
