@@ -9,7 +9,7 @@ version: "{build}"
 #---------------------------------#
 
 artifacts:
-  - path: 'Vtex.Caching.nupkg'
+  - path: 'Vtex.Caching.*.nupkg'
     name: nuget
 
 #---------------------------------#
