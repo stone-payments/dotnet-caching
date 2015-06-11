@@ -1,4 +1,4 @@
-﻿namespace HybridCaching.Enums
+﻿namespace Vtex.Caching.Enums
 {
     public enum PropagationAction
     {

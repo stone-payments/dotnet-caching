@@ -1,4 +1,4 @@
-﻿namespace HybridCaching
+﻿namespace Vtex.Caching
 {
     internal class CacheWrapper<T>
     {

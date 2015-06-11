@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HybridCaching.Enums;
-using HybridCaching.Interfaces;
+using Vtex.Caching.Enums;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching
+namespace Vtex.Caching
 {
     public class HybridCache : IHybridCache
     {

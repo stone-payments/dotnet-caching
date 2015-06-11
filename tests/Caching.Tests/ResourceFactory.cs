@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HybridCaching.Backends.InProcess;
-using HybridCaching.Backends.Redis;
-using HybridCaching.Interfaces;
 using StackExchange.Redis;
+using Vtex.Caching.Backends.InProcess;
+using Vtex.Caching.Backends.Redis;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching.Tests
+namespace Vtex.Caching.Tests
 {
     public static class ResourceFactory
     {

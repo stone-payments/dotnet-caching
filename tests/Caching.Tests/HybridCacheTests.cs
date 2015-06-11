@@ -5,7 +5,7 @@ using Moq;
 using NUnit.Framework;
 using Shouldly;
 
-namespace HybridCaching.Tests
+namespace Vtex.Caching.Tests
 {
     [TestFixture(Category = "Redis")]
     public class HybridCacheTests

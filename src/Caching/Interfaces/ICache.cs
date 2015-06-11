@@ -1,14 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HybridCaching.Interfaces
+namespace Vtex.Caching.Interfaces
 {
-    public interface IHybridCache
+    public interface ICache
     {
         Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync);
-        Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<Dictionary<string, T>>> createManyAsync);
         Task<T> GetAsync<T>(string key);
         Task SetAsync<T>(string key, T value, TimeSpan? timeToLive);
+        Task DeleteAsync(string key);
+        Task<bool> ExistsAsync(string key);
+        Task ExpireInAsync(string key, TimeSpan? timeToLive);
+        Task<TimeSpan?> GetTimeToLiveAsync(string key);
     }
 }

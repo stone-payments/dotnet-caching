@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace HybridCaching.Interfaces
+namespace Vtex.Caching.Interfaces
 {
     public interface ISubscribable
     {

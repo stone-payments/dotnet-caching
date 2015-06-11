@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
-using HybridCaching.Interfaces;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching.Backends.InProcess
+namespace Vtex.Caching.Backends.InProcess
 {
     public class InProcessCache : IRawCache
     {

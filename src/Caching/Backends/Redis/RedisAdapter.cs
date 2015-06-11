@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 
-namespace HybridCaching.Backends.Redis
+namespace Vtex.Caching.Backends.Redis
 {
     public class RedisAdapter : IRedisAdapter
     {
