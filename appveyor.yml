@@ -1,0 +1,70 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+version: "{build}"
+
+#---------------------------------#
+#     artifacts configuration     #
+#---------------------------------#
+
+artifacts:
+  - path: 'Vtex.Caching.nupkg'
+    name: nuget
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+environment:
+  nodejs_version: "0.12"
+
+init:
+  - git config --global core.autocrlf true
+
+cache:
+  - packages -> **\packages.config
+  - node_modules
+
+install:
+  - ps: Install-Product node $env:nodejs_version
+  - npm i gulp -g
+  - npm i
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+build_script:
+  - gulp build
+  - gulp pack
+
+#---------------------------------#
+#       test configuration        #
+#---------------------------------#
+
+before_test:
+  - gulp check-await
+
+test_script:
+  - gulp test
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+deploy:
+  - provider: Environment
+    name: myget
+    artifact: nuget
+    on:
+      appveyor_repo_tag: true
+
+#---------------------------------#
+#         notifications           #
+#---------------------------------#
+
+notifications:
+  - provider: HipChat
+    auth_token:
+      secure: mdnRk4amuE4pT+1FcC9VTu8J2nGl0ZQJk1435t7KPXs=
+    room: Portal

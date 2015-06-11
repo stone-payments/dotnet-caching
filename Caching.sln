@@ -1,11 +1,15 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridCaching", "HybridCaching\HybridCaching.csproj", "{FBDE1D2F-E453-4F48-803E-5BEA3420DAFB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Caching", "src\Caching\Caching.csproj", "{FBDE1D2F-E453-4F48-803E-5BEA3420DAFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridCaching.Tests", "HybridCaching.Tests\HybridCaching.Tests.csproj", "{08508F55-05AB-4D14-A457-8E6A69F9B92C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Caching.Tests", "tests\Caching.Tests\Caching.Tests.csproj", "{08508F55-05AB-4D14-A457-8E6A69F9B92C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{521E0DF1-3E4A-482F-9BCD-640CF4BC4026}"
+	ProjectSection(SolutionItems) = preProject
+		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,11 +5,12 @@ using Moq;
 using NUnit.Framework;
 using Shouldly;
 
-namespace HybridCaching.Tests
+namespace Vtex.Caching.Tests
 {
     [TestFixture(Category = "Redis")]
     public class HybridCacheTests
     {
+        [TestFixture(Category = "Redis")]
         public class GetOrSetAsync
         {
             [Test]
@@ -138,6 +139,7 @@ namespace HybridCaching.Tests
             }
         }
 
+        [TestFixture(Category = "Redis")]
         public class Subscribe
         {
             [Test]

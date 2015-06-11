@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HybridCaching.Enums;
-using HybridCaching.Interfaces;
+using Vtex.Caching.Enums;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching
+namespace Vtex.Caching
 {
     public class HybridCache : IHybridCache
     {
@@ -127,7 +127,7 @@ namespace HybridCaching
             {
                 var currentBackend = cacheBackends.Pop();
 
-                entry = await currentBackend.RawGetAsync<CacheWrapper<T>>(key);
+                entry = await currentBackend.RawGetAsync<CacheWrapper<T>>(key).ConfigureAwait(false);
 
                 if (entry == null)
                 {

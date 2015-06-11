@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HybridCaching.Interfaces;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching.Backends.Redis
+namespace Vtex.Caching.Backends.Redis
 {
     public class RedisCache : IRawCache, ISubscribable
     {
@@ -29,7 +29,7 @@ namespace HybridCaching.Backends.Redis
             }
 
             var value = await createAsync().ConfigureAwait(false);
-            await this.SetAsync(key, CacheWrapper<T>.For(value), timeToLive);
+            await this.SetAsync(key, CacheWrapper<T>.For(value), timeToLive).ConfigureAwait(false);
             return value;
         }
 

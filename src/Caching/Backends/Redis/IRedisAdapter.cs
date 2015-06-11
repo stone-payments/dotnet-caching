@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HybridCaching.Backends.Redis
+namespace Vtex.Caching.Backends.Redis
 {
     public interface IRedisAdapter
     {

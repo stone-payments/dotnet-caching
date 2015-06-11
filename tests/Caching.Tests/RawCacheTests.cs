@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HybridCaching.Interfaces;
 using Moq;
 using NUnit.Framework;
 using Shouldly;
+using Vtex.Caching.Interfaces;
 
-namespace HybridCaching.Tests
+namespace Vtex.Caching.Tests
 {
     [TestFixture("redis", Category = "Redis")]
     [TestFixture("inProcess")]
