@@ -127,7 +127,7 @@ namespace Vtex.Caching
             {
                 var currentBackend = cacheBackends.Pop();
 
-                entry = await currentBackend.RawGetAsync<CacheWrapper<T>>(key);
+                entry = await currentBackend.RawGetAsync<CacheWrapper<T>>(key).ConfigureAwait(false);
 
                 if (entry == null)
                 {

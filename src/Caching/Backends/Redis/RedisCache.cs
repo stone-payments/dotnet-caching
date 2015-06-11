@@ -29,7 +29,7 @@ namespace Vtex.Caching.Backends.Redis
             }
 
             var value = await createAsync().ConfigureAwait(false);
-            await this.SetAsync(key, CacheWrapper<T>.For(value), timeToLive);
+            await this.SetAsync(key, CacheWrapper<T>.For(value), timeToLive).ConfigureAwait(false);
             return value;
         }
 
