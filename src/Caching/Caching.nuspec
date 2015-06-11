@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Vtex.Caching</id>
+    <version>$version$</version>
+    <title>VTEX .NET caching library</title>
+    <authors>VTEX Lab</authors>
+    <owners>VTEX</owners>
+    <projectUrl>https://github.com/vtex/dotnet-caching</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for distributed and in process caching</description>
+    <copyright>Copyright VTEX 2015</copyright>
+    <tags>vtex caching redis hybrid memory</tags>
+    <dependencies>
+      <dependency id="StackExchange.Redis" version="1.0.450" />
+      <dependency id="Newtonsoft.Json" version="6.0.8" />
+    </dependencies>
+    <releaseNotes></releaseNotes>
+  </metadata>
+
+  <files>
+    <file src="bin\Release\Vtex.Caching.dll" target="lib\net45" />
+    <file src="bin\Release\Vtex.Caching.pdb" target="lib\net45" />
+  </files>
+</package>
