@@ -19,6 +19,11 @@ namespace Vtex.Caching.Backends.Redis
             this.RedisAdapter = redisAdapter;
         }
 
+        public RedisCache(string redisEndpoint, string keyPrefix = null)
+        {
+            this.RedisAdapter = new RedisAdapter(redisEndpoint, keyPrefix);
+        }
+
         public async Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync)
         {
             var item = await this.GetAsync<CacheWrapper<T>>(key).ConfigureAwait(false);
