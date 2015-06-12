@@ -104,7 +104,7 @@ namespace Vtex.Caching.Backends.Redis
             return this.Database.KeyTimeToLiveAsync(key);
         }
 
-        public Task<bool> Exists(string key)
+        public Task<bool> ExistsAsync(string key)
         {
             return this.Database.KeyExistsAsync(key);
         }
