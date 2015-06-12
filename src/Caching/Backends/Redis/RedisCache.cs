@@ -57,7 +57,7 @@ namespace Vtex.Caching.Backends.Redis
 
         public Task<bool> ExistsAsync(string key)
         {
-            return this.RedisAdapter.Exists(key);
+            return this.RedisAdapter.ExistsAsync(key);
         }
 
         public async Task RawSetAsync<T>(string key, T value, TimeSpan? timeToLive)

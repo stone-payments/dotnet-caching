@@ -18,7 +18,7 @@ namespace Vtex.Caching.Backends.Redis
         Task<bool> ExpireKeyAsync(string key, TimeSpan? expiry = null);
         Task<bool> ExpireKeyAsync(string key, DateTime? date);
         Task<TimeSpan?> GetTimeToLiveAsync(string key);
-        Task<bool> Exists(string key);
+        Task<bool> ExistsAsync(string key);
         Task SubscribeAsync<T>(string channelName, Action<string, T> callback);
         Task<long> PublishStringAsync(string channelName, string value);
         Task<long> PublishJsonAsync<T>(string channelName, T value);
