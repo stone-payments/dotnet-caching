@@ -1,6 +1,6 @@
 {
   "name": "dotnet-caching",
-  "version": "0.2.0-beta",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/vtex/dotnet-caching"
