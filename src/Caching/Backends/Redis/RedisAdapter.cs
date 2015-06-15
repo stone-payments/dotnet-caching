@@ -19,6 +19,12 @@ namespace Vtex.Caching.Backends.Redis
             this._keyPrefix = keyPrefix;
         }
 
+        public RedisAdapter(string redisEndpoint, string keyPrefix = null)
+        {
+            this._multiplexer = ConnectionMultiplexer.Connect(redisEndpoint);
+            this._keyPrefix = keyPrefix;
+        }
+
         private RedisKey Prepare(string key)
         {
             return this._keyPrefix == null ? key : this._keyPrefix + "." + key;

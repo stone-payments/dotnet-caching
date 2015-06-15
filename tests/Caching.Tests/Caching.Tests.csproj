@@ -63,7 +63,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Caching\Caching.csproj">
       <Project>{FBDE1D2F-E453-4F48-803E-5BEA3420DAFB}</Project>
-      <Name>HybridCaching</Name>
+      <Name>Caching</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

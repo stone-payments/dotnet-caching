@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
+using Vtex.Caching.Backends.InProcess;
+using Vtex.Caching.Backends.Redis;
 using Vtex.Caching.Enums;
 using Vtex.Caching.Interfaces;
 
@@ -10,6 +13,22 @@ namespace Vtex.Caching
     public class HybridCache : IHybridCache
     {
         private readonly Stack<IRawCache> _cacheBackends;
+
+        public HybridCache()
+        {
+            this._cacheBackends = new Stack<IRawCache>();
+
+            var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+
+            var redisEndpoint = ConfigurationManager.AppSettings["vtex.caching:redis-endpoint"];
+
+            if (!String.IsNullOrEmpty(redisEndpoint))
+            {
+                this._cacheBackends.Push(new RedisCache(redisEndpoint, assemblyName));
+            }
+
+            this._cacheBackends.Push(new InProcessCache(assemblyName));
+        }
 
         public HybridCache(Stack<IRawCache> cacheBackends)
         {
