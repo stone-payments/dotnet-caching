@@ -10,5 +10,6 @@ namespace Vtex.Caching.Interfaces
         Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<Dictionary<string, T>>> createManyAsync);
         Task<T> GetAsync<T>(string key);
         Task SetAsync<T>(string key, T value, TimeSpan? timeToLive);
+        Task DeleteAsync(string key);
     }
 }

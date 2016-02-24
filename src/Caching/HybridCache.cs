@@ -136,6 +136,15 @@ namespace Vtex.Caching
             return SetAllAsync(this._cacheBackends, key, value, timeToLive);
         }
 
+        public async Task DeleteAsync(string key)
+        {
+            var cacheDeletionTasks =
+                this._cacheBackends.Select(currentMissedBackend => currentMissedBackend.DeleteAsync(key))
+                    .ToList();
+
+            await Task.WhenAll(cacheDeletionTasks).ConfigureAwait(false);
+        }
+
         private async Task<CacheWrapper<T>> GetWrappedAsync<T>(string key)
         {
             var cacheBackends = new Stack<IRawCache>(this._cacheBackends.Reverse());

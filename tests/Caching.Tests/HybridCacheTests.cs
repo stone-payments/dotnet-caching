@@ -137,6 +137,26 @@ namespace Vtex.Caching.Tests
                 (await inProcessCache.GetAsync<string>(testKey)).ShouldBe("cachedValue");
                 fakeValueCreator.Verify(it => it.CreateString(), Times.Never);
             }
+
+            [Test]
+            public async Task Should_delete_cache()
+            {
+                //Arrange
+                var redisCache = ResourceFactory.GetRedisCache();
+                var inProcessCache = ResourceFactory.GetInProcessCache();
+                var hybridCache = ResourceFactory.GetHybridCache(redisCache, inProcessCache);
+                var testKey = ResourceFactory.GenerateKey();
+
+                await redisCache.SetAsync(testKey, "cachedValue", TimeSpan.FromSeconds(1));
+                await inProcessCache.SetAsync(testKey, "cachedValue", TimeSpan.FromSeconds(1));
+
+                //Act
+                await hybridCache.DeleteAsync(testKey);
+
+                //Assert
+                (await redisCache.GetAsync<string>(testKey)).ShouldBeNullOrEmpty();
+                (await inProcessCache.GetAsync<string>(testKey)).ShouldBeNullOrEmpty();
+            }
         }
 
         [TestFixture(Category = "Redis")]
