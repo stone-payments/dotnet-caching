@@ -28,6 +28,8 @@ namespace Vtex.Caching
             }
 
             this._cacheBackends.Push(new InProcessCache(assemblyName));
+
+            this.SubscribeAsync(this._cacheBackends).Wait();
         }
 
         public HybridCache(Stack<IRawCache> cacheBackends)
