@@ -26,5 +26,6 @@ namespace Vtex.Caching.Backends.Redis
         Task SubscribeToKeySpaceAsync(IEnumerable<string> keySpaces, Action<string, string> callback, int database = 0);
         Task SubscribeToKeyEventAsync(string keyEvent, Action<string, string> callback, int database = 0);
         Task SubscribeToKeyEventAsync(IEnumerable<string> keyEvents, Action<string, string> callback, int database = 0);
+        string GetEndpoint();
     }
 }

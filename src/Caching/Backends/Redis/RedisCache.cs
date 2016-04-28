@@ -80,6 +80,11 @@ namespace Vtex.Caching.Backends.Redis
             return this.RedisAdapter.GetTimeToLiveAsync(key);
         }
 
+        public string GetUniqueIdentifier()
+        {
+            return $"RedisCache.{RedisAdapter.GetEndpoint()}";
+        }
+
         public async Task SubscribeToDeleteAsync(Action<string, string> callback)
         {
             await this.RedisAdapter.SubscribeToKeyEventAsync(this._redisDeleteEvents, callback).ConfigureAwait(false);
