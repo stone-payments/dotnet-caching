@@ -55,6 +55,7 @@
     <Compile Include="Backends\Redis\IRedisAdapter.cs" />
     <Compile Include="Backends\Redis\RedisAdapter.cs" />
     <Compile Include="Backends\Redis\RedisCache.cs" />
+    <Compile Include="CacheKeyEvent.cs" />
     <Compile Include="CacheWrapper.cs" />
     <Compile Include="Enums\EventType.cs" />
     <Compile Include="HybridCache.cs" />
