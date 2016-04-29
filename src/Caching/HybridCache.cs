@@ -163,14 +163,14 @@ namespace Vtex.Caching
             _queueClient.QueueBind(queueName, EventPublishingExchange, EventPublishingRoute);
         }
 
-        private async Task PropagateEventAsync(CacheKeyEvent cacheKeyEvent, CancellationToken cancellationToken)
+        private Task PropagateEventAsync(CacheKeyEvent cacheKeyEvent, CancellationToken cancellationToken)
         {
             var elegibleBackends = _cacheBackends.TakeWhile(
                 backend => backend.GetUniqueIdentifier() != cacheKeyEvent.CacheBackendIdentifier);
 
             var deleteTasks = elegibleBackends.Select(backend => backend.DeleteAsync(cacheKeyEvent.CacheKey));
 
-            await Task.WhenAll(deleteTasks);
+            return Task.WhenAll(deleteTasks);
         }
 
         private void PublishEvent(string cacheKey, EventType eventType, string backendUniqueIdentifier)
