@@ -25,6 +25,11 @@ gulp.task 'check-await', ->
 gulp.task 'pack', ->
   specs = ['src/Caching/Caching.nuspec']
   dotnet.nuget.pack specs, './', pkg.version
+  
+gulp.task 'pack', ->
+  dotnet.nuget.pack 'src/Caching/Caching.csproj', pkg.version,
+    symbols: true
+    configuration: configuration
 
 gulp.task 'bump', ->
   dotnet.bump pkg.version
