@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Vtex.Caching.Interfaces
 {
-    public interface IHybridCache
+    public interface IHybridCache : IDisposable
     {
         Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync);
         Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<Dictionary<string, T>>> createManyAsync);

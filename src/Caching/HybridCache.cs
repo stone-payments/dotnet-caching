@@ -2,19 +2,34 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Vtex.Caching.Backends.InProcess;
 using Vtex.Caching.Backends.Redis;
 using Vtex.Caching.Enums;
 using Vtex.Caching.Interfaces;
+using Vtex.RabbitMQ.Messaging;
+using Vtex.RabbitMQ.Messaging.Interfaces;
+using Vtex.RabbitMQ.ProcessingWorkers;
+using static System.String;
 
 namespace Vtex.Caching
 {
     public class HybridCache : IHybridCache
     {
+        private const string EventListeningQueuePrefix = "hybrid-cache.propagate-event";
+
+        private const string EventPublishingExchange = "hybrid-cache";
+
+        private const string EventPublishingRoute = "new-event";
+
         private readonly Stack<IRawCache> _cacheBackends;
 
-        public HybridCache()
+        private readonly IQueueClient _queueClient;
+
+        private readonly AdvancedAsyncMessageProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
+
+        public HybridCache(IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
         {
             this._cacheBackends = new Stack<IRawCache>();
 
@@ -22,74 +37,57 @@ namespace Vtex.Caching
 
             var redisEndpoint = ConfigurationManager.AppSettings["vtex.caching:redis-endpoint"];
 
-            if (!String.IsNullOrEmpty(redisEndpoint))
+            if (!IsNullOrEmpty(redisEndpoint))
             {
                 this._cacheBackends.Push(new RedisCache(redisEndpoint, assemblyName));
             }
 
             this._cacheBackends.Push(new InProcessCache(assemblyName));
 
-            this.SubscribeAsync(this._cacheBackends).Wait();
+            if (queueClient == null)
+            {
+                var rabbitMqEndpoint = ConfigurationManager.AppSettings["vtex.caching:rabbitmq-endpoint"];
+                _queueClient = new RabbitMQClient(rabbitMqEndpoint);
+            }
+            else
+            {
+                _queueClient = queueClient;
+            }
+
+            instanceUniqueIdentifier = IsNullOrWhiteSpace(instanceUniqueIdentifier) ? Guid.NewGuid().ToString() : instanceUniqueIdentifier;
+
+            var queueName = $"{EventListeningQueuePrefix}.{instanceUniqueIdentifier}";
+
+            EnsureQueueAndBindings(queueName);
+
+            _messageProcessingWorker =
+                AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName, PropagateEventAsync,
+                    TimeSpan.FromSeconds(1), CancellationToken.None).Result;
         }
 
-        public HybridCache(Stack<IRawCache> cacheBackends)
+        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
         {
             this._cacheBackends = cacheBackends;
 
-            this.SubscribeAsync(cacheBackends).Wait();
-        }
-
-        private async Task SubscribeAsync(IEnumerable<IRawCache> cacheBackends)
-        {
-            var parentBackends = new List<IRawCache>();
-
-            foreach (var backend in cacheBackends)
+            if (queueClient == null)
             {
-                var subscribableBackend = backend as ISubscribable;
-
-                if (subscribableBackend != null)
-                {
-                    IRawCache currentBackend = backend;
-
-                    var targetBackends = new List<IRawCache>(parentBackends);
-
-                    await subscribableBackend.SubscribeToDeleteAsync(
-                        (eventType, keyName) => PropagateEvent(keyName, PropagationAction.Delete, currentBackend,
-                                    targetBackends)).ConfigureAwait(false);
-
-                    await subscribableBackend.SubscribeToUpdateTimeToLiveAsync(
-                        (eventType, keyName) => PropagateEvent(keyName, PropagationAction.UpdateTimeToLive, currentBackend,
-                                    targetBackends)).ConfigureAwait(false);
-                }
-
-                parentBackends.Add(backend);
+                var rabbitMqEndpoint = ConfigurationManager.AppSettings["vtex.caching:rabbitmq-endpoint"];
+                _queueClient = new RabbitMQClient(rabbitMqEndpoint);
             }
-        }
-
-        private void PropagateEvent(string keyName, PropagationAction action, IRawCache originBackend, 
-            IEnumerable<IRawCache> targetBackends)
-        {
-            switch (action)
+            else
             {
-                case PropagationAction.Delete:
-                {
-                    var deleteTasks = targetBackends.Select(backend => backend.DeleteAsync(keyName));
-
-                    Task.WhenAll(deleteTasks).Wait();
-
-                    break;
-                }
-                case PropagationAction.UpdateTimeToLive:
-                {
-                    var timeToLive = originBackend.GetTimeToLiveAsync(keyName).Result;
-
-                    var updateTimeToLiveTasks = targetBackends.Select(backend => backend.ExpireInAsync(keyName, timeToLive));
-
-                    Task.WhenAll(updateTimeToLiveTasks).Wait();
-
-                    break;
-                }
+                _queueClient = queueClient;
             }
+
+            var instanceUniqueIdentifier1 = IsNullOrWhiteSpace(instanceUniqueIdentifier) ? Guid.NewGuid().ToString() : instanceUniqueIdentifier;
+
+            var queueName = $"{EventListeningQueuePrefix}.{instanceUniqueIdentifier1}";
+
+            EnsureQueueAndBindings(queueName);
+
+            _messageProcessingWorker =
+                AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName, PropagateEventAsync,
+                    TimeSpan.FromSeconds(1), CancellationToken.None).Result;
         }
 
         public async Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync)
@@ -145,6 +143,41 @@ namespace Vtex.Caching
                     .ToList();
 
             await Task.WhenAll(cacheDeletionTasks).ConfigureAwait(false);
+
+            PublishEvent(key, EventType.Delete, _cacheBackends.Last().GetUniqueIdentifier());
+        }
+
+        public void Dispose()
+        {
+            _messageProcessingWorker.Dispose();
+        }
+
+        private void EnsureQueueAndBindings(string queueName)
+        {
+            var arguments = new Dictionary<string, object> { { "x-expires", (long)TimeSpan.FromHours(1).TotalMilliseconds } };
+
+            _queueClient.QueueDeclare(queueName, arguments: arguments);
+
+            _queueClient.ExchangeDeclare(EventPublishingExchange);
+
+            _queueClient.QueueBind(queueName, EventPublishingExchange, EventPublishingRoute);
+        }
+
+        private async Task PropagateEventAsync(CacheKeyEvent cacheKeyEvent, CancellationToken cancellationToken)
+        {
+            var elegibleBackends = _cacheBackends.TakeWhile(
+                backend => backend.GetUniqueIdentifier() != cacheKeyEvent.CacheBackendIdentifier);
+
+            var deleteTasks = elegibleBackends.Select(backend => backend.DeleteAsync(cacheKeyEvent.CacheKey));
+
+            await Task.WhenAll(deleteTasks);
+        }
+
+        private void PublishEvent(string cacheKey, EventType eventType, string backendUniqueIdentifier)
+        {
+            var cacheKeyEvent = new CacheKeyEvent { CacheKey = cacheKey, EventType = eventType, CacheBackendIdentifier = backendUniqueIdentifier };
+
+            _queueClient.Publish(EventPublishingExchange, EventPublishingRoute, cacheKeyEvent);
         }
 
         private async Task<CacheWrapper<T>> GetWrappedAsync<T>(string key)
