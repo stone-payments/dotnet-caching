@@ -176,47 +176,7 @@ namespace Vtex.Caching.Tests
                 //Act
                 await redisCache.DeleteAsync(testKey);
 
-                await Task.Delay(500);
-
-                //Assert
-                (await inProcessCache.GetAsync<string>(testKey)).ShouldBe(null);
-            }
-
-            [Test]
-            public async Task Should_propagate_expire_update()
-            {
-                //Arrange
-                var redisCache = ResourceFactory.GetRedisCache();
-                var inProcessCache = ResourceFactory.GetInProcessCache();
-                var hybridCache = ResourceFactory.GetHybridCache(redisCache, inProcessCache);
-                var testKey = ResourceFactory.GenerateKey();
-
-                await hybridCache.SetAsync(testKey, "testValue", TimeSpan.FromSeconds(1));
-
-                //Act
-                await redisCache.ExpireInAsync(testKey, TimeSpan.FromSeconds(2));
-
                 await Task.Delay(1000);
-
-                //Assert
-                (await inProcessCache.GetAsync<string>(testKey)).ShouldBe("testValue");
-            }
-
-            [Test]
-            public async Task Should_propagate_expired()
-            {
-                //Arrange
-                var redisCache = ResourceFactory.GetRedisCache();
-                var inProcessCache = ResourceFactory.GetInProcessCache();
-                var hybridCache = ResourceFactory.GetHybridCache(redisCache, inProcessCache);
-                var testKey = ResourceFactory.GenerateKey();
-
-                await hybridCache.SetAsync(testKey, "testValue", null);
-
-                //Act
-                await redisCache.ExpireInAsync(testKey, TimeSpan.Zero);
-
-                await Task.Delay(500);
 
                 //Assert
                 (await inProcessCache.GetAsync<string>(testKey)).ShouldBe(null);
