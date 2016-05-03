@@ -30,19 +30,13 @@ namespace Vtex.Caching
         private readonly AdvancedAsyncMessageProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
 
         public HybridCache(IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
+            : this(GetDefaultCacheBackends(), queueClient, instanceUniqueIdentifier)
         {
-            this._cacheBackends = new Stack<IRawCache>();
+        }
 
-            var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-            var redisEndpoint = ConfigurationManager.AppSettings["vtex.caching:redis-endpoint"];
-
-            if (!IsNullOrEmpty(redisEndpoint))
-            {
-                this._cacheBackends.Push(new RedisCache(redisEndpoint, assemblyName));
-            }
-
-            this._cacheBackends.Push(new InProcessCache(assemblyName));
+        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
+        {
+            this._cacheBackends = cacheBackends;
 
             if (queueClient == null)
             {
@@ -65,29 +59,21 @@ namespace Vtex.Caching
                     TimeSpan.FromSeconds(1), CancellationToken.None).Result;
         }
 
-        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
+        private static Stack<IRawCache> GetDefaultCacheBackends()
         {
-            this._cacheBackends = cacheBackends;
+            var cacheBackends = new Stack<IRawCache>();
 
-            if (queueClient == null)
+            var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+
+            var redisEndpoint = ConfigurationManager.AppSettings["vtex.caching:redis-endpoint"];
+
+            if (!IsNullOrEmpty(redisEndpoint))
             {
-                var rabbitMqEndpoint = ConfigurationManager.AppSettings["vtex.caching:rabbitmq-endpoint"];
-                _queueClient = new RabbitMQClient(rabbitMqEndpoint);
-            }
-            else
-            {
-                _queueClient = queueClient;
+                cacheBackends.Push(new RedisCache(redisEndpoint, assemblyName));
             }
 
-            var instanceUniqueIdentifier1 = IsNullOrWhiteSpace(instanceUniqueIdentifier) ? Guid.NewGuid().ToString() : instanceUniqueIdentifier;
-
-            var queueName = $"{EventListeningQueuePrefix}.{instanceUniqueIdentifier1}";
-
-            EnsureQueueAndBindings(queueName);
-
-            _messageProcessingWorker =
-                AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName, PropagateEventAsync,
-                    TimeSpan.FromSeconds(1), CancellationToken.None).Result;
+            cacheBackends.Push(new InProcessCache(assemblyName));
+            return cacheBackends;
         }
 
         public async Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync)
