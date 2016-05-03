@@ -87,6 +87,11 @@ namespace Vtex.Caching.Backends.InProcess
             return item == null ? null : item.TimeToLive;
         }
 
+        public string GetUniqueIdentifier()
+        {
+            return $"InProcessCache.{Cache.Name}";
+        }
+
         private class InProcessCacheWrapper<T> : CacheWrapper<T>, IInProcessCacheWrapper
         {
             private DateTimeOffset? ExpireAt { get; set; }

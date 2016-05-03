@@ -1,6 +1,6 @@
 ﻿namespace Vtex.Caching.Enums
 {
-    public enum PropagationAction
+    public enum EventType
     {
         UpdateTimeToLive,
         Delete

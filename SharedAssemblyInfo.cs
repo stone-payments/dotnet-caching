@@ -17,6 +17,6 @@ using System.Runtime.InteropServices;
  *  --pre [value]   Use `value` as the prerelease identifier
  *  --stable        Bump to a stable version instead of prerelease
  */
-[assembly: AssemblyVersion("0.2.2")]
-[assembly: AssemblyFileVersion("0.2.2")]
-[assembly: AssemblyInformationalVersion("0.2.2")]
+[assembly: AssemblyVersion("0.3.0")]
+[assembly: AssemblyFileVersion("0.3.0")]
+[assembly: AssemblyInformationalVersion("0.3.0-alpha4")]

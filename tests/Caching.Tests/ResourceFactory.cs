@@ -5,6 +5,8 @@ using StackExchange.Redis;
 using Vtex.Caching.Backends.InProcess;
 using Vtex.Caching.Backends.Redis;
 using Vtex.Caching.Interfaces;
+using Vtex.RabbitMQ.Messaging;
+using Vtex.RabbitMQ.Messaging.Interfaces;
 
 namespace Vtex.Caching.Tests
 {
@@ -39,12 +41,17 @@ namespace Vtex.Caching.Tests
 
         public static HybridCache GetHybridCache()
         {
-            return new HybridCache(GetCacheStack());
+            return new HybridCache(GetCacheStack(), GetQueueClient());
         }
 
         public static HybridCache GetHybridCache(params IRawCache[] cacheBackends)
         {
-            return new HybridCache(GetCacheStack(cacheBackends));
+            return new HybridCache(GetCacheStack(cacheBackends), GetQueueClient());
+        }
+
+        public static IQueueClient GetQueueClient()
+        {
+            return new RabbitMQClient("guest:guest@localhost:5672/testing");
         }
 
         private static string GenerateString(int length)

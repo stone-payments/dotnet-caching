@@ -171,5 +171,10 @@ namespace Vtex.Caching.Backends.Redis
 
             return Task.WhenAll(subscriptionTasks);
         }
+
+        public string GetEndpoint()
+        {
+            return _multiplexer.Configuration;
+        }
     }
 }

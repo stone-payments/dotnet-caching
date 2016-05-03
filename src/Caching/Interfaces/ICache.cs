@@ -12,5 +12,6 @@ namespace Vtex.Caching.Interfaces
         Task<bool> ExistsAsync(string key);
         Task ExpireInAsync(string key, TimeSpan? timeToLive);
         Task<TimeSpan?> GetTimeToLiveAsync(string key);
+        string GetUniqueIdentifier();
     }
 }
