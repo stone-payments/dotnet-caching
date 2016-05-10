@@ -29,16 +29,12 @@ namespace Vtex.Caching
 
         private readonly AdvancedAsyncMessageProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
 
-        public delegate Task<AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>> CreateConsumerWorkerAsync();
-
-        public HybridCache(IQueueClient queueClient = null, string instanceUniqueIdentifier = null, 
-            Func<CreateConsumerWorkerAsync, Task<AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>>> consumerWrapper = null)
-            : this(GetDefaultCacheBackends(), queueClient, instanceUniqueIdentifier, consumerWrapper)
+        public HybridCache(IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
+            : this(GetDefaultCacheBackends(), queueClient, instanceUniqueIdentifier)
         {
         }
 
-        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null,
-            Func<CreateConsumerWorkerAsync, Task<AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>>> consumerWrapper = null)
+        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
         {
             this._cacheBackends = cacheBackends;
 
@@ -58,10 +54,9 @@ namespace Vtex.Caching
 
             EnsureQueueAndBindings(queueName);
 
-            CreateConsumerWorkerAsync createWorker = () => AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName,
-                    PropagateEventAsync, TimeSpan.FromSeconds(1), CancellationToken.None);
-
-            _messageProcessingWorker = consumerWrapper == null ? createWorker().Result : consumerWrapper(createWorker).Result;
+            _messageProcessingWorker =
+                AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName, PropagateEventAsync,
+                    TimeSpan.FromSeconds(1), CancellationToken.None).Result;
         }
 
         private static Stack<IRawCache> GetDefaultCacheBackends()
