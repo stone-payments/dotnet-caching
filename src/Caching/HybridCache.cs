@@ -29,12 +29,16 @@ namespace Vtex.Caching
 
         private readonly AdvancedAsyncMessageProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
 
-        public HybridCache(IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
-            : this(GetDefaultCacheBackends(), queueClient, instanceUniqueIdentifier)
+        public HybridCache(IQueueClient queueClient = null,
+            Func<IMessageProcessingWorker<CacheKeyEvent>, Task> startWorkerAsync = null,
+            string instanceUniqueIdentifier = null)
+            : this(GetDefaultCacheBackends(), queueClient, startWorkerAsync, instanceUniqueIdentifier)
         {
         }
 
-        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null, string instanceUniqueIdentifier = null)
+        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null,
+            Func<IMessageProcessingWorker<CacheKeyEvent>, Task> startWorkerAsync = null,
+            string instanceUniqueIdentifier = null)
         {
             this._cacheBackends = cacheBackends;
 
@@ -48,16 +52,27 @@ namespace Vtex.Caching
                 _queueClient = queueClient;
             }
 
-            instanceUniqueIdentifier = IsNullOrWhiteSpace(instanceUniqueIdentifier) ? Guid.NewGuid().ToString() : instanceUniqueIdentifier;
+            instanceUniqueIdentifier = IsNullOrWhiteSpace(instanceUniqueIdentifier)
+                ? Guid.NewGuid().ToString()
+                : instanceUniqueIdentifier;
 
             var queueName = $"{EventListeningQueuePrefix}.{instanceUniqueIdentifier}";
 
             EnsureQueueAndBindings(queueName);
 
             _messageProcessingWorker =
-                AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>.CreateAndStartAsync(_queueClient, queueName, PropagateEventAsync,
-                    TimeSpan.FromSeconds(1), CancellationToken.None).Result;
-        }
+                new AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>(_queueClient, queueName,
+                    PropagateEventAsync, TimeSpan.FromSeconds(1));
+
+            if (startWorkerAsync == null)
+            {
+                _messageProcessingWorker.StartAsync(CancellationToken.None).Wait();
+            }
+            else
+            {
+                startWorkerAsync(_messageProcessingWorker).Wait();
+            }
+    }
 
         private static Stack<IRawCache> GetDefaultCacheBackends()
         {
