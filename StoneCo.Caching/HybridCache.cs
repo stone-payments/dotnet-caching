@@ -1,14 +1,14 @@
-﻿using System;
+using RabbitMQ.Abstraction.Messaging.Interfaces;
+using RabbitMQ.Abstraction.ProcessingWorkers;
+using StoneCo.Caching.Configuration;
+using StoneCo.Caching.Enums;
+using StoneCo.Caching.Factories;
+using StoneCo.Caching.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RabbitMQ.Abstraction.Messaging.Interfaces;
-using RabbitMQ.Abstraction.ProcessingWorkers;
-using StoneCo.Caching.Backends.InProcess;
-using StoneCo.Caching.Backends.Redis;
-using StoneCo.Caching.Enums;
-using StoneCo.Caching.Interfaces;
 
 namespace StoneCo.Caching
 {
@@ -25,6 +25,8 @@ namespace StoneCo.Caching
         private readonly IQueueClient _queueClient;
 
         private readonly AdvancedAsyncProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
+
+        public static CachingConfiguration Configuration { get; private set; }
 
         public HybridCache(IQueueClient queueClient = null,
             Func<IMessageProcessingWorker<CacheKeyEvent>, Task> startWorkerAsync = null,
@@ -61,22 +63,27 @@ namespace StoneCo.Caching
             {
                 startWorkerAsync(_messageProcessingWorker).Wait();
             }
-    }
+        }
+
+        public void LoadConfiguration(CachingConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                configuration = new CachingConfiguration();
+            }
+
+            Configuration = configuration;
+        }
 
         private static Stack<IRawCache> GetDefaultCacheBackends()
         {
             var cacheBackends = new Stack<IRawCache>();
 
-            var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-            var redisEndpoint = ConfigurationManager.AppSettings["StoneCo.Caching:redis-endpoint"];
-
-            if (!IsNullOrEmpty(redisEndpoint))
+            foreach (var cache in BackendFactory.CreateRawCache(Configuration))
             {
-                cacheBackends.Push(new RedisCache(redisEndpoint, assemblyName));
+                cacheBackends.Push(cache);
             }
 
-            cacheBackends.Push(new InProcessCache(assemblyName));
             return cacheBackends;
         }
 
