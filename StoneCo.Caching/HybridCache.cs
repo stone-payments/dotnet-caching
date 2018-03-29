@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Vtex.Caching.Backends.InProcess;
-using Vtex.Caching.Backends.Redis;
-using Vtex.Caching.Enums;
-using Vtex.Caching.Interfaces;
-using Vtex.RabbitMQ.Messaging;
-using Vtex.RabbitMQ.Messaging.Interfaces;
-using Vtex.RabbitMQ.ProcessingWorkers;
-using static System.String;
+using RabbitMQ.Abstraction.Messaging.Interfaces;
+using RabbitMQ.Abstraction.ProcessingWorkers;
+using StoneCo.Caching.Backends.InProcess;
+using StoneCo.Caching.Backends.Redis;
+using StoneCo.Caching.Enums;
+using StoneCo.Caching.Interfaces;
 
-namespace Vtex.Caching
+namespace StoneCo.Caching
 {
     public class HybridCache : IHybridCache
     {
@@ -27,7 +24,7 @@ namespace Vtex.Caching
 
         private readonly IQueueClient _queueClient;
 
-        private readonly AdvancedAsyncMessageProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
+        private readonly AdvancedAsyncProcessingWorker<CacheKeyEvent> _messageProcessingWorker;
 
         public HybridCache(IQueueClient queueClient = null,
             Func<IMessageProcessingWorker<CacheKeyEvent>, Task> startWorkerAsync = null,
@@ -36,32 +33,24 @@ namespace Vtex.Caching
         {
         }
 
-        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient = null,
+        public HybridCache(Stack<IRawCache> cacheBackends, IQueueClient queueClient,
             Func<IMessageProcessingWorker<CacheKeyEvent>, Task> startWorkerAsync = null,
             string instanceUniqueIdentifier = null)
         {
-            this._cacheBackends = cacheBackends;
+            _cacheBackends = cacheBackends;
 
-            if (queueClient == null)
-            {
-                var rabbitMqEndpoint = ConfigurationManager.AppSettings["vtex.caching:rabbitmq-endpoint"];
-                _queueClient = new RabbitMQClient(rabbitMqEndpoint);
-            }
-            else
-            {
-                _queueClient = queueClient;
-            }
+            _queueClient = queueClient;
 
-            instanceUniqueIdentifier = IsNullOrWhiteSpace(instanceUniqueIdentifier)
+            instanceUniqueIdentifier = string.IsNullOrWhiteSpace(instanceUniqueIdentifier)
                 ? Guid.NewGuid().ToString()
                 : instanceUniqueIdentifier;
 
             var queueName = $"{EventListeningQueuePrefix}.{instanceUniqueIdentifier}";
 
-            EnsureQueueAndBindings(queueName);
+            EnsureQueueAndBindingsAsync(queueName).Wait();
 
             _messageProcessingWorker =
-                new AdvancedAsyncMessageProcessingWorker<CacheKeyEvent>(_queueClient, queueName,
+                new AdvancedAsyncProcessingWorker<CacheKeyEvent>(_queueClient, queueName,
                     PropagateEventAsync, TimeSpan.FromSeconds(1));
 
             if (startWorkerAsync == null)
@@ -80,7 +69,7 @@ namespace Vtex.Caching
 
             var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
 
-            var redisEndpoint = ConfigurationManager.AppSettings["vtex.caching:redis-endpoint"];
+            var redisEndpoint = ConfigurationManager.AppSettings["StoneCo.Caching:redis-endpoint"];
 
             if (!IsNullOrEmpty(redisEndpoint))
             {
@@ -93,7 +82,7 @@ namespace Vtex.Caching
 
         public async Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<T>> createAsync)
         {
-            var item = await this.GetWrappedAsync<T>(key).ConfigureAwait(false);
+            var item = await GetWrappedAsync<T>(key).ConfigureAwait(false);
 
             if (item != null)
             {
@@ -102,14 +91,14 @@ namespace Vtex.Caching
 
             var value = await createAsync().ConfigureAwait(false);
 
-            await SetAllAsync(this._cacheBackends, key, value, timeToLive).ConfigureAwait(false);
+            await SetAllAsync(_cacheBackends, key, value, timeToLive).ConfigureAwait(false);
 
             return value;
         }
 
         public async Task<T> GetOrSetAsync<T>(string key, TimeSpan? timeToLive, Func<Task<Dictionary<string, T>>> createManyAsync)
         {
-            var item = await this.GetWrappedAsync<T>(key).ConfigureAwait(false);
+            var item = await GetWrappedAsync<T>(key).ConfigureAwait(false);
 
             if (item != null)
             {
@@ -118,7 +107,7 @@ namespace Vtex.Caching
 
             var values = await createManyAsync().ConfigureAwait(false);
 
-            var setAllTasks = values.Select(kv => SetAllAsync(this._cacheBackends, kv.Key, kv.Value, timeToLive));
+            var setAllTasks = values.Select(kv => SetAllAsync(_cacheBackends, kv.Key, kv.Value, timeToLive));
 
             await Task.WhenAll(setAllTasks).ConfigureAwait(false);
 
@@ -127,25 +116,25 @@ namespace Vtex.Caching
 
         public async Task<T> GetAsync<T>(string key)
         {
-            var entry = await this.GetWrappedAsync<T>(key).ConfigureAwait(false);
+            var entry = await GetWrappedAsync<T>(key).ConfigureAwait(false);
 
             return entry == null ? default(T) : entry.Value;
         }
 
         public Task SetAsync<T>(string key, T value, TimeSpan? timeToLive)
         {
-            return SetAllAsync(this._cacheBackends, key, value, timeToLive);
+            return SetAllAsync(_cacheBackends, key, value, timeToLive);
         }
 
         public async Task DeleteAsync(string key)
         {
             var cacheDeletionTasks =
-                this._cacheBackends.Select(currentMissedBackend => currentMissedBackend.DeleteAsync(key))
+                _cacheBackends.Select(currentMissedBackend => currentMissedBackend.DeleteAsync(key))
                     .ToList();
 
             await Task.WhenAll(cacheDeletionTasks).ConfigureAwait(false);
 
-            PublishEvent(key, EventType.Delete, _cacheBackends.Last().GetUniqueIdentifier());
+            await PublishEventAsync(key, EventType.Delete, _cacheBackends.Last().GetUniqueIdentifier());
         }
 
         public void Dispose()
@@ -153,15 +142,15 @@ namespace Vtex.Caching
             _messageProcessingWorker.Dispose();
         }
 
-        private void EnsureQueueAndBindings(string queueName)
+        private async Task EnsureQueueAndBindingsAsync(string queueName)
         {
             var arguments = new Dictionary<string, object> { { "x-expires", (long)TimeSpan.FromHours(1).TotalMilliseconds } };
 
-            _queueClient.QueueDeclare(queueName, arguments: arguments);
+            await _queueClient.QueueDeclareAsync(queueName, arguments: arguments);
 
-            _queueClient.ExchangeDeclare(EventPublishingExchange);
+            await _queueClient.ExchangeDeclareAsync(EventPublishingExchange);
 
-            _queueClient.QueueBind(queueName, EventPublishingExchange, EventPublishingRoute);
+            await _queueClient.QueueBindAsync(queueName, EventPublishingExchange, EventPublishingRoute);
         }
 
         private Task PropagateEventAsync(CacheKeyEvent cacheKeyEvent, CancellationToken cancellationToken)
@@ -174,16 +163,16 @@ namespace Vtex.Caching
             return Task.WhenAll(deleteTasks);
         }
 
-        private void PublishEvent(string cacheKey, EventType eventType, string backendUniqueIdentifier)
+        private async Task PublishEventAsync(string cacheKey, EventType eventType, string backendUniqueIdentifier)
         {
             var cacheKeyEvent = new CacheKeyEvent { CacheKey = cacheKey, EventType = eventType, CacheBackendIdentifier = backendUniqueIdentifier };
 
-            _queueClient.Publish(EventPublishingExchange, EventPublishingRoute, cacheKeyEvent);
+            await _queueClient.PublishAsync(EventPublishingExchange, EventPublishingRoute, cacheKeyEvent);
         }
 
         private async Task<CacheWrapper<T>> GetWrappedAsync<T>(string key)
         {
-            var cacheBackends = new Stack<IRawCache>(this._cacheBackends.Reverse());
+            var cacheBackends = new Stack<IRawCache>(_cacheBackends.Reverse());
             var cacheMissBackends = new List<IRawCache>();
             CacheWrapper<T> entry = null;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Vtex.Caching.Interfaces
+namespace StoneCo.Caching.Interfaces
 {
     public interface IHybridCache : IDisposable
     {

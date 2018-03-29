@@ -1,4 +1,4 @@
-﻿namespace Vtex.Caching.Enums
+﻿namespace StoneCo.Caching.Enums
 {
     public enum EventType
     {

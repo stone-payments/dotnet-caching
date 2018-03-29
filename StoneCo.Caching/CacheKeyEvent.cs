@@ -1,7 +1,7 @@
 ﻿using System;
-using Vtex.Caching.Enums;
+using StoneCo.Caching.Enums;
 
-namespace Vtex.Caching
+namespace StoneCo.Caching
 {
     public class CacheKeyEvent
     {

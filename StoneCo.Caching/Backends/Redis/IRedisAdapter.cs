@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Vtex.Caching.Backends.Redis
+namespace StoneCo.Caching.Backends.Redis
 {
     public interface IRedisAdapter
     {

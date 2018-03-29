@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneCo.Caching", "StoneCo.Caching\StoneCo.Caching.csproj", "{3506DA75-973A-4A88-8F39-9CB1D6A0F728}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3506DA75-973A-4A88-8F39-9CB1D6A0F728}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3506DA75-973A-4A88-8F39-9CB1D6A0F728}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3506DA75-973A-4A88-8F39-9CB1D6A0F728}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3506DA75-973A-4A88-8F39-9CB1D6A0F728}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {89A0A3C3-C364-458E-91ED-B242E4A2A793}
+	EndGlobalSection
+EndGlobal

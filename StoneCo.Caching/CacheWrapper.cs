@@ -1,4 +1,4 @@
-﻿namespace Vtex.Caching
+﻿namespace StoneCo.Caching
 {
     internal class CacheWrapper<T>
     {
@@ -6,7 +6,7 @@
 
         public CacheWrapper(T value)
         {
-            this.Value = value;
+            Value = value;
         }
 
         internal static CacheWrapper<T> For(T value)
